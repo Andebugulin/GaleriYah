@@ -176,7 +176,7 @@ const AvantGardePortfolio = () => {
       </main>
 
       {/* Footer */}
-      <footer className="mt-16 pb-8 text-center text-gray-500">
+      <footer className="mt-6 pb-6 text-center text-gray-500">
         <p className="font-mono text-sm">
           © {new Date().getFullYear()} ANDREI GULIN
         </p>
