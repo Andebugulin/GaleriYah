@@ -7,7 +7,7 @@ const theme = {
   fontFamily: '"Courier New", monospace',
   colorPrimary: "#000000",
   colorAccent: "#FF3300",
-  transitionSpeed: "0.4s",
+  transitionSpeed: "0.01s",
   gridGap: "1px",
 };
 
@@ -38,13 +38,31 @@ const photos = [
   },
   {
     id: 5,
-    url: "https://culted.com/wp-content/uploads/2021/09/supreme.jpg",
+    url: "/assets/me_smoky.jpg",
     title: "DIGITAL DREAMS",
     category: "portrait",
   },
   {
     id: 6,
     url: "https://quartersnacks.com/wp-content/uploads/2024/04/rat-ratz-who-said-what-vince.jpg",
+    title: "ACID RAIN",
+    category: "abstract",
+  },
+  {
+    id: 7,
+    url: "https://quartersnacks.com/wp-content/uploads/2021/12/rat-ratz-6.jpg",
+    title: "STATIC MOTION",
+    category: "street",
+  },
+  {
+    id: 8,
+    url: "https://www.skateboarding.com/.image/ar_4:3%2Cc_fill%2Ccs_srgb%2Cq_auto:eco%2Cw_1200/MjAwNDA2NzAyODgzODc0MTY4/screen-shot-2023-08-28-at-21744-pm.png",
+    title: "DIGITAL DREAMS",
+    category: "portrait",
+  },
+  {
+    id: 9,
+    url: "https://place.tv/wp-content/uploads/2020/10/place-19-scaled.jpg",
     title: "ACID RAIN",
     category: "abstract",
   },
@@ -142,7 +160,7 @@ const AvantGardePortfolio = () => {
                     : "grayscale(0%)",
                 }}
               />
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-500">
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-80 transition-all duration-500">
                 <div className="h-full flex flex-col justify-between p-4 text-white">
                   <h3 className="text-lg font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                     {photo.title}
