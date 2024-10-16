@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
-import { ArrowLeft, Plus } from "lucide-react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -15,7 +14,6 @@ export default function PhotoDetail({ params }) {
 
   const [photo, setPhoto] = useState(null);
   const { id } = params;
-  const [showInfo, setShowInfo] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -37,6 +35,10 @@ export default function PhotoDetail({ params }) {
     }
   };
 
+  const handleImageClick = () => {
+    router.back();
+  };
+
   if (!photo) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -46,25 +48,30 @@ export default function PhotoDetail({ params }) {
   }
 
   return (
-    <div className="min-h-screen bg-white text-black font-sans flex flex-col justify-between p-4">
-      <div className="text-center">
+    <div className="min-h-screen bg-white text-black font-sans p-4 relative">
+      {/* Title and Category */}
+      <div className="text-center mb-6">
         <h1 className="text-2xl uppercase tracking-widest font-bold mb-2">
           {photo.title}
         </h1>
         <p className="text-sm uppercase tracking-wider">{photo.category}</p>
       </div>
 
-      <div className="flex-grow flex items-center justify-center">
-        <img
-          src={photo.url}
-          alt={photo.title}
-          className="max-w-full max-h-[70vh] object-contain"
-        />
-      </div>
-
-      <div className="text-center mt-4">
-        <p className="text-sm mb-2">{photo.description}</p>
-        <p className="text-xs uppercase tracking-wider">{photo.year}</p>
+      {/* Image and Description */}
+      <div className="absolute inset-0 flex min-h-screen">
+        <div className="w-1/2 p-4 flex items-center justify-center">
+          <img
+            src={photo.url}
+            alt={photo.title}
+            className="max-w-full max-h-[70vh] w-auto h-auto object-contain cursor-pointer"
+            onClick={handleImageClick}
+          />
+        </div>
+        <div className="flex w-1/2 items-center justify-center p-4">
+          <p className="max-w-2xl text-lg leading-relaxed">
+            {photo.description}
+          </p>
+        </div>
       </div>
     </div>
   );
