@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { createClient } from "@supabase/supabase-js";
 import { Camera, Menu, X, ArrowRight, Instagram, Mail } from "lucide-react";
+
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
 const theme = {
   fontFamily: '"Courier New", monospace',
@@ -11,72 +18,87 @@ const theme = {
   gridGap: "1px",
 };
 
-const photos = [
-  {
-    id: 1,
-    url: "https://d15lrsitp7y7u.cloudfront.net/wp-content/uploads/2018/06/maxresdefault.jpg",
-    title: "URBAN DECAY",
-    category: "street",
-  },
-  {
-    id: 2,
-    url: "https://images.freeskatemag.com/wp-content/uploads/2022/12/01183807/boing.jpg",
-    title: "NEON NIGHTS",
-    category: "portrait",
-  },
-  {
-    id: 3,
-    url: "https://www.jenkemmag.com/home/wp-content/uploads/2024/03/BsFlip-Milan-scaled.jpg",
-    title: "CONCRETE WAVES",
-    category: "abstract",
-  },
-  {
-    id: 4,
-    url: "https://images-wp.stockx.com/news/wp-content/uploads/2019/05/Screen-Shot-2019-05-31-at-3.01.36-PM.png",
-    title: "STATIC MOTION",
-    category: "street",
-  },
-  {
-    id: 5,
-    url: "/assets/me_smoky.jpg",
-    title: "DIGITAL DREAMS",
-    category: "portrait",
-  },
-  {
-    id: 6,
-    url: "https://quartersnacks.com/wp-content/uploads/2024/04/rat-ratz-who-said-what-vince.jpg",
-    title: "ACID RAIN",
-    category: "abstract",
-  },
-  {
-    id: 7,
-    url: "https://quartersnacks.com/wp-content/uploads/2021/12/rat-ratz-6.jpg",
-    title: "STATIC MOTION",
-    category: "street",
-  },
-  {
-    id: 8,
-    url: "https://www.skateboarding.com/.image/ar_4:3%2Cc_fill%2Ccs_srgb%2Cq_auto:eco%2Cw_1200/MjAwNDA2NzAyODgzODc0MTY4/screen-shot-2023-08-28-at-21744-pm.png",
-    title: "DIGITAL DREAMS",
-    category: "portrait",
-  },
-  {
-    id: 9,
-    url: "https://place.tv/wp-content/uploads/2020/10/place-19-scaled.jpg",
-    title: "ACID RAIN",
-    category: "abstract",
-  },
-];
-
 const AvantGardePortfolio = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState("all");
   const [clickedPhoto, setClickedPhoto] = useState({});
-
-  const categories = [
-    "all",
-    ...(new Set(photos.map((photo) => photo.category)) as any),
+  const photos_example = [
+    {
+      id: 1,
+      url: "https://d15lrsitp7y7u.cloudfront.net/wp-content/uploads/2018/06/maxresdefault.jpg",
+      title: "URBAN DECAY",
+      category: "street",
+    },
+    {
+      id: 2,
+      url: "https://images.freeskatemag.com/wp-content/uploads/2022/12/01183807/boing.jpg",
+      title: "NEON NIGHTS",
+      category: "portrait",
+    },
+    {
+      id: 3,
+      url: "https://www.jenkemmag.com/home/wp-content/uploads/2024/03/BsFlip-Milan-scaled.jpg",
+      title: "CONCRETE WAVES",
+      category: "abstract",
+    },
+    {
+      id: 4,
+      url: "https://images-wp.stockx.com/news/wp-content/uploads/2019/05/Screen-Shot-2019-05-31-at-3.01.36-PM.png",
+      title: "STATIC MOTION",
+      category: "street",
+    },
+    {
+      id: 5,
+      url: "/assets/me_smoky.jpg",
+      title: "DIGITAL DREAMS",
+      category: "portrait",
+    },
+    {
+      id: 6,
+      url: "https://quartersnacks.com/wp-content/uploads/2024/04/rat-ratz-who-said-what-vince.jpg",
+      title: "ACID RAIN",
+      category: "abstract",
+    },
+    {
+      id: 7,
+      url: "https://quartersnacks.com/wp-content/uploads/2021/12/rat-ratz-6.jpg",
+      title: "STATIC MOTION",
+      category: "street",
+    },
+    {
+      id: 8,
+      url: "https://www.skateboarding.com/.image/ar_4:3%2Cc_fill%2Ccs_srgb%2Cq_auto:eco%2Cw_1200/MjAwNDA2NzAyODgzODc0MTY4/screen-shot-2023-08-28-at-21744-pm.png",
+      title: "DIGITAL DREAMS",
+      category: "portrait",
+    },
+    {
+      id: 9,
+      url: "https://place.tv/wp-content/uploads/2020/10/place-19-scaled.jpg",
+      title: "ACID RAIN",
+      category: "abstract",
+    },
   ];
+  const [photos, setPhotos] = useState(photos_example);
+  const [categories, setCategories] = useState(["all"]);
+
+  useEffect(() => {
+    fetchPhotos();
+  }, []);
+
+  const fetchPhotos = async () => {
+    const { data, error } = await supabase.from("photos").select("*");
+
+    if (error) {
+      console.error("Error fetching photos:", error);
+    } else {
+      setPhotos(data);
+      const uniqueCategories = [
+        "all",
+        ...new Set(data.map((photo) => photo.category)),
+      ];
+      setCategories(uniqueCategories);
+    }
+  };
 
   const filteredPhotos =
     activeCategory === "all"
