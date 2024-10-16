@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { Camera, Menu, X, ArrowRight, Instagram, Mail } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -21,21 +22,13 @@ const theme = {
 const AvantGardePortfolio = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState("all");
-  const [clickedPhoto, setClickedPhoto] = useState({});
   const [photos, setPhotos] = useState([]);
   const [categories, setCategories] = useState(["all"]);
   const [error, setError] = useState(null);
+  const router = useRouter();
 
   useEffect(() => {
     fetchPhotos();
-  }, []);
-
-  useEffect(() => {
-    async function testConnection() {
-      const { data, error } = await supabase.from("photos").select("count");
-      console.log("Connection test:", data, error);
-    }
-    testConnection();
   }, []);
 
   const fetchPhotos = async () => {
@@ -66,11 +59,8 @@ const AvantGardePortfolio = () => {
       ? photos
       : photos.filter((photo) => photo.category === activeCategory);
 
-  const handleClick = (photoId) => {
-    setClickedPhoto((prev) => ({
-      ...prev,
-      [photoId]: !prev[photoId],
-    }));
+  const handlePhotoClick = (photo) => {
+    router.push(`/photo/${photo.id}`);
   };
 
   return (
@@ -130,18 +120,13 @@ const AvantGardePortfolio = () => {
           {filteredPhotos.map((photo) => (
             <div
               key={photo.id}
-              className="relative aspect-square overflow-hidden group"
-              onClick={() => handleClick(photo.id)}
+              className="relative aspect-square overflow-hidden group cursor-pointer"
+              onClick={() => handlePhotoClick(photo)}
             >
               <img
                 src={photo.url}
                 alt={photo.title}
-                className="w-full h-full object-cover transition-all duration-700"
-                style={{
-                  filter: clickedPhoto[photo.id]
-                    ? "grayscale(100%)"
-                    : "grayscale(0%)",
-                }}
+                className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-80 transition-all duration-500">
                 <div className="h-full flex flex-col justify-between p-4 text-white">
