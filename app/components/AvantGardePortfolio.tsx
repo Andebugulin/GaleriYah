@@ -126,15 +126,17 @@ const AvantGardePortfolio = () => {
               <img
                 src={photo.url}
                 alt={photo.title}
-                className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
+                className="w-full h-full object-cover transition-all duration-700 group-hover:grayscale"
               />
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-80 transition-all duration-500">
-                <div className="h-full flex flex-col justify-between p-4 text-white">
-                  <h3 className="text-lg font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                    {photo.title}
+              <div className="absolute inset-0 bg-black bg-opacity-0 transition-all duration-500">
+                <div className="h-full flex flex-col justify-center items-center p-4 text-[#ED1C24] text-center">
+                  <h3 className="text-2xl font-bold w-full opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    <span className="inline-block bg-white">{photo.title}</span>
                   </h3>
-                  <p className="text-sm font-mono opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                    {photo.category.toUpperCase()}
+                  <p className="text-lg font-mono opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    <span className="inline-block bg-white">
+                      {photo.category.toUpperCase()}
+                    </span>{" "}
                   </p>
                 </div>
               </div>
