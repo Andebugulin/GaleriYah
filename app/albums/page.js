@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
@@ -11,9 +10,20 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
-const AlbumsPage = ({}) => {
+const AlbumsPage = () => {
   const scrollContainerRef = useRef(null);
-  const [imageWidth, setImageWidth] = useState(0);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const [albums, setAlbums] = useState([]);
+  const [error, setError] = useState(null);
+  const [hoveredAlbum, setHoveredAlbum] = useState(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    fetchAlbums();
+    updateContainerSize();
+    window.addEventListener("resize", updateContainerSize);
+    return () => window.removeEventListener("resize", updateContainerSize);
+  }, []);
 
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -27,21 +37,11 @@ const AlbumsPage = ({}) => {
     }
   }, []);
 
-  const [albums, setAlbums] = useState([]);
-  const [error, setError] = useState(null);
-  const router = useRouter();
-
-  useEffect(() => {
-    fetchAlbums();
-    // Calculate image width based on screen size
-    const updateImageWidth = () => {
-      const screenWidth = window.innerWidth;
-      setImageWidth(screenWidth / 28);
-    };
-    updateImageWidth();
-    window.addEventListener("resize", updateImageWidth);
-    return () => window.removeEventListener("resize", updateImageWidth);
-  }, []);
+  const updateContainerSize = () => {
+    const width = window.innerWidth / 2;
+    const height = window.innerHeight / 2;
+    setContainerSize({ width, height });
+  };
 
   const fetchAlbums = async () => {
     try {
@@ -66,9 +66,14 @@ const AlbumsPage = ({}) => {
     router.push(`/album/${albumId}`);
   };
 
-  const getRandomPosition = () => {
-    // Generate a random position between -25% and 25% for cropping effect
-    return `${Math.floor(Math.random() * 50) - 25}%`;
+  const getRandomColor = () => {
+    const hue = Math.floor(Math.random() * 360);
+    return `hsl(${hue}, 70%, 80%)`;
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toISOString().split("T")[0];
   };
 
   return (
@@ -83,40 +88,44 @@ const AlbumsPage = ({}) => {
       </header>
 
       {/* Main content */}
-      <main className="flex-grow flex items-center justify-center p-4">
+      <main className="flex-grow flex flex-col items-center justify-center p-4">
         <div
           ref={scrollContainerRef}
-          className="w-1/2 h-1/2 overflow-x-auto whitespace-nowrap scrollbar-hide"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          className="overflow-x-auto whitespace-nowrap scrollbar-hide mb-4"
+          style={{
+            width: `${containerSize.width}px`,
+            height: `${containerSize.height}px`,
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+          }}
         >
           {albums.map((album) => (
             <div
               key={album.id}
               className="inline-block h-full cursor-pointer mr-0.5 last:mr-0"
-              style={{ width: imageWidth }}
+              style={{ width: `${containerSize.width / 14}px` }}
               onClick={() => handleAlbumClick(album.id)}
+              onMouseEnter={() => setHoveredAlbum(album)}
+              onMouseLeave={() => setHoveredAlbum(null)}
             >
               <div
-                className="relative h-full overflow-hidden"
-                style={{ width: "100%" }}
+                className="relative h-full overflow-hidden flex items-center justify-center"
+                style={{ backgroundColor: getRandomColor() }}
               >
                 {album.cover_photo_url ? (
-                  <img
-                    src={album.cover_photo_url}
-                    className="h-full object-cover"
+                  <div
+                    className="absolute inset-0 bg-cover bg-center"
                     style={{
-                      width: "auto",
-                      position: "relative",
-                      top: getRandomPosition(),
-                      left: getRandomPosition(),
+                      backgroundImage: `url(${album.cover_photo_url})`,
+                      backgroundPosition: "center",
+                      width: "100%",
+                      height: "100%",
                     }}
                   />
                 ) : (
-                  <div className="h-full w-full bg-gray-200 flex items-center justify-center">
-                    <span className="text-4xl font-bold text-gray-400">
-                      {album.title.charAt(0)}
-                    </span>
-                  </div>
+                  <span className="text-4xl font-bold text-white">
+                    {album.title.charAt(0).toUpperCase()}
+                  </span>
                 )}
                 {album.isNew && (
                   <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 uppercase">
@@ -129,9 +138,16 @@ const AlbumsPage = ({}) => {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="p-4 text-center text-gray-500">
-        <p className="text-sm">© {new Date().getFullYear()} ANDREI GULIN</p>
+      {/* Footer - Now outside of main, fixed to bottom */}
+      <footer className="fixed bottom-0 left-0 right-0 bg-white bg-opacity-80 backdrop-blur-sm py-2 px-4 text-center">
+        {hoveredAlbum ? (
+          <div>
+            <div>{hoveredAlbum.title}</div>
+            <div>{formatDate(hoveredAlbum.created_at)}</div>
+          </div>
+        ) : (
+          <div></div>
+        )}
       </footer>
     </div>
   );
