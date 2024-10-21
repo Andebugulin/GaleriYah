@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -77,20 +78,34 @@ const AlbumsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans flex flex-col">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-white font-sans flex flex-col"
+    >
       {/* Header */}
-      <header className="bg-white z-50 p-4 flex justify-between items-center border-b border-gray-200">
+      <motion.header
+        initial={{ y: -50 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white z-50 p-4 flex justify-between items-center border-b border-gray-200"
+      >
         <button onClick={() => router.push("/")} className="text-black">
           <ArrowLeft size={24} />
         </button>
         <h1 className="text-xl font-bold">ALBUMS</h1>
         <div className="w-6"></div>
-      </header>
+      </motion.header>
 
       {/* Main content */}
       <main className="flex-grow flex flex-col items-center justify-center p-4">
-        <div
+        <motion.div
           ref={scrollContainerRef}
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
           className="overflow-x-auto whitespace-nowrap scrollbar-hide mb-4"
           style={{
             width: `${containerSize.width}px`,
@@ -99,9 +114,12 @@ const AlbumsPage = () => {
             msOverflowStyle: "none",
           }}
         >
-          {albums.map((album) => (
-            <div
+          {albums.map((album, index) => (
+            <motion.div
               key={album.id}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
               className="inline-block h-full cursor-pointer mr-0.5 last:mr-0"
               style={{ width: `${containerSize.width / 14}px` }}
               onClick={() => handleAlbumClick(album.id)}
@@ -133,23 +151,33 @@ const AlbumsPage = () => {
                   </span>
                 )}
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </main>
 
-      {/* Footer - Now outside of main, fixed to bottom */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-white bg-opacity-80 backdrop-blur-sm py-2 px-4 text-center">
-        {hoveredAlbum ? (
-          <div>
-            <div>{hoveredAlbum.title}</div>
-            <div>{formatDate(hoveredAlbum.created_at)}</div>
-          </div>
-        ) : (
-          <div></div>
-        )}
-      </footer>
-    </div>
+      {/* Footer */}
+      <motion.footer
+        initial={{ y: 50 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="fixed bottom-0 left-0 right-0 bg-white bg-opacity-80 backdrop-blur-sm py-2 px-4 text-center"
+      >
+        <AnimatePresence>
+          {hoveredAlbum && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div>{hoveredAlbum.title}</div>
+              <div>{formatDate(hoveredAlbum.created_at)}</div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.footer>
+    </motion.div>
   );
 };
 
