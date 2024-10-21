@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { Camera, Menu, X, ArrowRight, Instagram, Mail } from "lucide-react";
+import { Menu, X, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 // Initialize Supabase client
@@ -12,10 +12,10 @@ const supabase = createClient(
 );
 
 const theme = {
-  fontFamily: '"Courier New", monospace',
+  fontFamily: '"Futura", "Helvetica", sans-serif',
   colorPrimary: "#000000",
-  colorAccent: "#FF3300",
-  transitionSpeed: "0.01s",
+  colorAccent: "#ff0000",
+  transitionSpeed: "0.3s",
   gridGap: "1px",
 };
 
@@ -33,14 +33,12 @@ const AvantGardePortfolio = () => {
 
   const fetchPhotos = async () => {
     try {
-      console.log("Fetching photos...");
       const { data, error } = await supabase.from("photos").select("*");
 
       if (error) {
         console.error("Error fetching photos:", error);
         setError(error.message);
       } else {
-        console.log("Fetched photos:", data);
         setPhotos(data);
         const uniqueCategories = [
           "all",
@@ -63,55 +61,51 @@ const AvantGardePortfolio = () => {
     router.push(`/photo/${photo.id}`);
   };
 
+  const handleAlbumsClick = () => {
+    router.push("/albums");
+  };
+
   return (
     <div
       className="min-h-screen bg-white"
       style={{ fontFamily: theme.fontFamily }}
     >
-      {/* Noise overlay */}
-      <div className="fixed inset-0 pointer-events-none opacity-50 z-50">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,...')] opacity-50"></div>
-      </div>
-
       {/* Header */}
-      <header className="fixed top-5 w-full z-40 mix-blend-difference">
+      <header className="fixed top-0 left-0 right-0 bg-white z-40 border-b border-gray-200">
         <div className="container mx-auto px-4 h-16 flex justify-between items-center">
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="text-white"
+            className="text-black"
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
-          <h1 className="text-xl font-bold text-white tracking-widest">
-            ANDREI GULIN
-          </h1>
+          <h1 className="text-xl font-bold tracking-widest">ANDREI GULIN</h1>
+          <div className="w-6"></div>
         </div>
       </header>
 
       {/* Full-screen menu */}
-      <div
-        className={`fixed inset-0 bg-black z-30 transition-transform duration-500 ${
-          isMenuOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        <div className="h-full flex flex-col justify-center items-center space-y-8 text-white">
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => {
-                setActiveCategory(category);
-                setIsMenuOpen(false);
-              }}
-              className="group text-4xl font-bold tracking-widest hover:text-red-500 transition-colors"
-            >
-              {category.toUpperCase()}
-              <span className="inline-block ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <ArrowRight size={24} />
-              </span>
-            </button>
-          ))}
+      {isMenuOpen && (
+        <div className="fixed inset-0 bg-white z-30">
+          <div className="h-full flex flex-col justify-center items-center space-y-8">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => {
+                  setActiveCategory(category);
+                  setIsMenuOpen(false);
+                }}
+                className="group text-4xl font-bold tracking-widest hover:text-red-500 transition-colors"
+              >
+                {category.toUpperCase()}
+                <span className="inline-block ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <ArrowRight size={24} />
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main content */}
       <main className="container mx-auto pt-24 px-1">
@@ -136,7 +130,7 @@ const AvantGardePortfolio = () => {
                   <p className="text-lg font-mono opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                     <span className="inline-block bg-white">
                       {photo.category.toUpperCase()}
-                    </span>{" "}
+                    </span>
                   </p>
                 </div>
               </div>
@@ -144,6 +138,16 @@ const AvantGardePortfolio = () => {
           ))}
         </div>
       </main>
+
+      {/* Flat Supreme-inspired Albums Button */}
+      <div className="fixed bottom-8 right-8 z-50">
+        <button
+          onClick={handleAlbumsClick}
+          className="bg-white text-red-600 font-bold text-xl py-2 px-4 hover:bg-red-600 hover:text-white transition-colors duration-300"
+        >
+          ALBUMS
+        </button>
+      </div>
 
       {/* Footer */}
       <footer className="mt-8 pb-8 text-center text-gray-500">
