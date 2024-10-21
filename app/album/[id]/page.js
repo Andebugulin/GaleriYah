@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -57,7 +57,11 @@ export default function AlbumDetail({ params }) {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toString().split("T")[0];
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
   };
 
   if (!album) {
@@ -75,17 +79,19 @@ export default function AlbumDetail({ params }) {
         <button onClick={() => router.push("/albums")} className="text-black">
           <ArrowLeft size={24} />
         </button>
-        <h1 className="text-xl font-bold uppercase">{album.title}</h1>
+        <h1 className="text-xl font-bold tracking-widest uppercase">
+          {album.title}
+        </h1>
         <div className="w-6"></div>
       </header>
 
       {/* Main content */}
       <main className="flex-grow p-4 overflow-y-auto">
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1">
           {photos.map((photo) => (
             <div
               key={photo.id}
-              className="relative aspect-square cursor-pointer"
+              className="relative aspect-square overflow-hidden group cursor-pointer"
               onClick={() => handlePhotoClick(photo.id)}
               onMouseEnter={() => setHoveredPhoto(photo)}
               onMouseLeave={() => setHoveredPhoto(null)}
@@ -93,12 +99,21 @@ export default function AlbumDetail({ params }) {
               <img
                 src={photo.url}
                 alt={photo.title}
-                className="w-full h-full object-cover transition-opacity duration-300 hover:opacity-75"
+                className="w-full h-full object-cover group-hover:grayscale"
               />
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
-                <span className="text-red text-lg font-bold uppercase tracking-widest bg-red px-4 py-2">
-                  View
-                </span>
+              <div className="absolute inset-0 bg-black bg-opacity-0 transition-all">
+                <div className="h-full flex flex-col justify-center items-center p-4 text-[#ED1C24] text-center">
+                  <h3 className="text-2xl font-bold w-full opacity-0 group-hover:opacity-100">
+                    <span className="inline-block bg-black px-2">
+                      {photo.title}
+                    </span>
+                  </h3>
+                  <p className="text-lg font-mono opacity-0 group-hover:opacity-100">
+                    <span className="inline-block bg-black px-2">
+                      {formatDate(photo.created_at)}
+                    </span>
+                  </p>
+                </div>
               </div>
             </div>
           ))}
@@ -107,14 +122,7 @@ export default function AlbumDetail({ params }) {
 
       {/* Footer */}
       <footer className="fixed bottom-0 left-0 right-0 bg-white bg-opacity-80 backdrop-blur-sm py-2 px-4 text-center">
-        {hoveredPhoto ? (
-          <div>
-            <div className="font-bold">{hoveredPhoto.title}</div>
-            <div className="text-sm">{formatDate(hoveredPhoto.created_at)}</div>
-          </div>
-        ) : (
-          <div>{album.description}</div>
-        )}
+        <div>{album.description}</div>
       </footer>
     </div>
   );

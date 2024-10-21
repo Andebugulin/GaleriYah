@@ -86,12 +86,7 @@ const AlbumsPage = () => {
       className="min-h-screen bg-white font-sans flex flex-col"
     >
       {/* Header */}
-      <motion.header
-        initial={{ y: -50 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="bg-white z-50 p-4 flex justify-between items-center border-b border-gray-200"
-      >
+      <motion.header className="bg-white z-50 p-4 flex justify-between items-center border-b border-gray-200">
         <button onClick={() => router.push("/")} className="text-black">
           <ArrowLeft size={24} />
         </button>
@@ -165,12 +160,7 @@ const AlbumsPage = () => {
       >
         <AnimatePresence>
           {hoveredAlbum && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.3 }}
-            >
+            <motion.div>
               <div>{hoveredAlbum.title}</div>
               <div>{formatDate(hoveredAlbum.created_at)}</div>
             </motion.div>

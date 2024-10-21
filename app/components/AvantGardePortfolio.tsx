@@ -95,10 +95,10 @@ const AvantGardePortfolio = () => {
                   setActiveCategory(category);
                   setIsMenuOpen(false);
                 }}
-                className="group text-4xl font-bold tracking-widest hover:text-red-500 transition-colors"
+                className="group text-4xl font-bold tracking-widest hover:text-yellow-500 hover:bg-black"
               >
                 {category.toUpperCase()}
-                <span className="inline-block ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="inline-block ml-2 opacity-0 group-hover:opacity-100">
                   <ArrowRight size={24} />
                 </span>
               </button>
@@ -120,15 +120,15 @@ const AvantGardePortfolio = () => {
               <img
                 src={photo.url}
                 alt={photo.title}
-                className="w-full h-full object-cover transition-all duration-700 group-hover:grayscale"
+                className="w-full h-full object-cover group-hover:grayscale"
               />
-              <div className="absolute inset-0 bg-black bg-opacity-0 transition-all duration-500">
+              <div className="absolute inset-0 bg-black bg-opacity-0">
                 <div className="h-full flex flex-col justify-center items-center p-4 text-[#ED1C24] text-center">
-                  <h3 className="text-2xl font-bold w-full opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                    <span className="inline-block bg-white">{photo.title}</span>
+                  <h3 className="text-2xl font-bold w-full opacity-0 group-hover:opacity-100">
+                    <span className="inline-block bg-black">{photo.title}</span>
                   </h3>
-                  <p className="text-lg font-mono opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                    <span className="inline-block bg-white">
+                  <p className="text-lg font-mono opacity-0 group-hover:opacity-100">
+                    <span className="inline-block bg-black">
                       {photo.category.toUpperCase()}
                     </span>
                   </p>
@@ -143,7 +143,7 @@ const AvantGardePortfolio = () => {
       <div className="fixed bottom-8 right-8 z-50">
         <button
           onClick={handleAlbumsClick}
-          className="bg-white text-red-600 font-bold text-xl py-2 px-4 hover:bg-red-600 hover:text-white transition-colors duration-300"
+          className="bg-white text-black font-bold text-xl py-2 px-4 hover:bg-black hover:text-[#ED1C24]"
         >
           ALBUMS
         </button>
