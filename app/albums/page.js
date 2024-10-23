@@ -79,15 +79,17 @@ const AlbumsPage = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen bg-white font-sans flex flex-col"
+      className="min-h-screen bg-black font-sans flex flex-col"
     >
       {/* Header */}
-      <motion.header className="bg-white z-50 p-4 flex justify-between items-center border-b border-gray-200">
-        <button onClick={() => router.push("/")} className="text-black">
+      <motion.header className="bg-black text-white z-50 p-4 flex justify-between items-center border-b border-red-600">
+        <button
+          onClick={() => router.push("/")}
+          className="text-red-600 hover:text-white transition-colors"
+        >
           <ArrowLeft size={24} />
         </button>
         <h1 className="text-xl font-bold">ALBUMS</h1>
@@ -156,7 +158,7 @@ const AlbumsPage = () => {
         initial={{ y: 50 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5 }}
-        className="fixed bottom-0 left-0 right-0 bg-white bg-opacity-80 backdrop-blur-sm py-2 px-4 text-center"
+        className="fixed bottom-0 text-red-600 left-0 right-0 bg-opacity-80 backdrop-blur-sm py-2 px-4 text-center"
       >
         <AnimatePresence>
           {hoveredAlbum && (
