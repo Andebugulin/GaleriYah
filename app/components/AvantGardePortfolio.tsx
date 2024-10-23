@@ -154,7 +154,7 @@ const AvantGardePortfolio = () => {
                 className="w-full h-full object-cover group-hover:grayscale"
               />
               <div className="absolute inset-0 bg-black bg-opacity-0">
-                <div className="h-full flex flex-col justify-center items-center p-4 text-[#ED1C24] text-center">
+                <div className="h-full flex flex-col justify-center items-center p-4 text-white text-center">
                   <h3 className="text-2xl font-bold w-full opacity-0 group-hover:opacity-100">
                     <span className="inline-block bg-black">{photo.title}</span>
                   </h3>
