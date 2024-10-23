@@ -24,12 +24,32 @@ const AvantGardePortfolio = () => {
   const [activeCategory, setActiveCategory] = useState("all");
   const [photos, setPhotos] = useState([]);
   const [categories, setCategories] = useState(["all"]);
+  const [positions, setPositions] = useState([]);
   const [error, setError] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
     fetchPhotos();
-  }, []);
+    if (isMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isMenuOpen]);
+
+  // Generate random positions when menu opens
+  useEffect(() => {
+    if (isMenuOpen && categories.length > 0) {
+      const newPositions = categories.map(() => ({
+        x: Math.random() * 80 - 40, // Random value between -40 and 40px
+        rotate: Math.random() * 2 - 1, // Random rotation between -1 and 1 degree
+      }));
+      setPositions(newPositions);
+    }
+  }, [isMenuOpen, categories]);
 
   const fetchPhotos = async () => {
     try {
@@ -84,32 +104,43 @@ const AvantGardePortfolio = () => {
         </div>
       </header>
 
-      {/* Full-screen menu */}
+      {/* Full-screen menu with random X positioning */}
       {isMenuOpen && (
-        <div className="fixed inset-0 bg-white z-30">
-          <div className="h-full flex flex-col justify-center items-center space-y-8">
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => {
-                  setActiveCategory(category);
-                  setIsMenuOpen(false);
-                }}
-                className="group text-4xl font-bold tracking-widest hover:text-yellow-500 hover:bg-black"
-              >
-                {category.toUpperCase()}
-                <span className="inline-block ml-2 opacity-0 group-hover:opacity-100">
-                  <ArrowRight size={24} />
-                </span>
-              </button>
-            ))}
+        <div className="fixed inset-0 bg-white z-30 overflow-hidden">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="flex flex-col items-center space-y-8">
+              {categories.map((category, index) => (
+                <div
+                  key={category}
+                  className="relative"
+                  style={{
+                    transform: positions[index]
+                      ? `translateX(${positions[index].x}px) rotate(${positions[index].rotate}deg)`
+                      : "none",
+                    transition: "all 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
+                  }}
+                >
+                  <button
+                    onClick={() => {
+                      setActiveCategory(category);
+                      setIsMenuOpen(false);
+                    }}
+                    className="group text-4xl font-bold tracking-widest hover:text-yellow-500 hover:bg-black px-4 py-2"
+                  >
+                    {category.toUpperCase()}
+                    <span className="inline-block ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <ArrowRight size={24} />
+                    </span>
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
 
       {/* Main content */}
       <main className="container mx-auto pt-24 px-1">
-        {/* Photo grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1">
           {filteredPhotos.map((photo) => (
             <div
