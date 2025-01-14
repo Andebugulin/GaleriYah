@@ -57,7 +57,12 @@ export default function AlbumDetail({ params }) {
     if (error) {
       console.error("Error fetching album photos:", error);
     } else {
-      setPhotos(data.map((item) => item.photos));
+      console.log(data);
+      // Sorting photos by a unique property like ID or created_at date
+      const sortedPhotos = data
+        .map((item) => item.photos)
+        .sort((a, b) => a.date_taken);
+      setPhotos(sortedPhotos);
     }
   };
 
