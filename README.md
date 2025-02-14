@@ -1,3 +1,8 @@
+<div style="display: flex; justify-content: center;">
+    <img src="GaleriYah.png" alt="Image">
+</div>
+
+
 # GaleriYah
 
 An avant-garde photography portfolio application built with Next.js 13, featuring a dynamic grid layout, smooth transitions, and sophisticated image management capabilities.
