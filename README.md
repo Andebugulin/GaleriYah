@@ -8,7 +8,7 @@
 An avant-garde photography portfolio application built with Next.js 13, featuring a dynamic grid layout, smooth transitions, and sophisticated image management capabilities.
 
 ##  Tech Stack
-
+t commi
 - **Frontend Framework**: Next.js 13
 - **Styling**: Tailwind CSS
 - **Database**: Supabase
