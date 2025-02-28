@@ -52,7 +52,8 @@ export default function AlbumDetail({ params }) {
     const { data, error } = await supabase
       .from("album_photos")
       .select("photos(*)")
-      .eq("album_id", albumId);
+      .eq("album_id", albumId)
+      .subscribe(); // Add realtime subscription
 
     if (error) {
       console.error("Error fetching album photos:", error);
@@ -61,7 +62,7 @@ export default function AlbumDetail({ params }) {
       // Sorting photos by a unique property like ID or created_at date
       const sortedPhotos = data
         .map((item) => item.photos)
-        .sort((a, b) => a.date_taken);
+        .sort((a, b) => new Date(a.date_taken) - new Date(b.date_taken));
       setPhotos(sortedPhotos);
     }
   };
