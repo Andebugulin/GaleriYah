@@ -1,3 +1,4 @@
+// app/utils/flickrSync.js
 import { supabase } from './supabase';
 
 export const flickrSync = {
@@ -88,6 +89,11 @@ export const flickrSync = {
         console.error('Error inserting new photos:', error);
         return { success: false, error, added: 0 };
       }
+
+      if (data) {
+        console.log('Inserted new photos');
+      }
+
     }
     
     // 5. Update sync date

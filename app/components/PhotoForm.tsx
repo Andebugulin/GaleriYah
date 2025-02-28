@@ -3,7 +3,17 @@
 import React, { useState } from "react";
 import { supabase } from "../utils/supabase";
 
-const PhotoForm = ({ initialData = {} }) => {
+type InitialData = {
+  id?: string;
+  title: string;
+  url: string;
+  category: string;
+  description: string;
+  date_taken: string;
+  // Add other fields as needed
+};
+
+const PhotoForm = ({ initialData = {} as InitialData }) => {
   const [form, setForm] = useState(initialData || {
     title: '',
     url: '',
@@ -15,7 +25,7 @@ const PhotoForm = ({ initialData = {} }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
     setIsSubmitting(true);
     setMessage("");
@@ -37,8 +47,10 @@ const PhotoForm = ({ initialData = {} }) => {
         });
       }
       
-    } catch (error) {
-      setMessage(`Error: ${error.message}`);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setMessage(`Error: ${error.message}`);
+      }
     } finally {
       setIsSubmitting(false);
     }

@@ -1,3 +1,4 @@
+// app/api/fetch-flickr-photos/route.js
 import { NextResponse } from 'next/server';
 import { processFlickrPhotos } from '@/app/utils/flickrProcessor';
 
@@ -23,3 +24,6 @@ export async function POST(request) {
     );
   }
 }
+
+// Add this to ensure the file is recognized as a module
+export const dynamic = 'force-dynamic';

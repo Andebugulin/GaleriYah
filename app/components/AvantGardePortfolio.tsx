@@ -7,8 +7,8 @@ import { useRouter } from "next/navigation";
 
 // Initialize Supabase client
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  process.env.NEXT_PUBLIC_SUPABASE_URL as string,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
 );
 
 const theme = {
@@ -22,10 +22,10 @@ const theme = {
 const AvantGardePortfolio = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState("all");
-  const [photos, setPhotos] = useState([]);
+  const [photos, setPhotos] = useState([]as { id: string; title: string; url: string; category: string }[]);
   const [categories, setCategories] = useState(["all"]);
-  const [positions, setPositions] = useState([]);
-  const [error, setError] = useState(null);
+  const [positions, setPositions] = useState([] as { x: number; rotate: number }[]);
+  const [error, setError] = useState(null as string | null);
   const router = useRouter();
 
   useEffect(() => {
@@ -66,9 +66,12 @@ const AvantGardePortfolio = () => {
         ];
         setCategories(uniqueCategories);
       }
-    } catch (err) {
-      console.error("Unexpected error:", err);
-      setError(err.message);
+    } catch (error: unknown) { // Use 'unknown' or 'any'
+      if (error instanceof Error) {
+        console.error(error.message);
+      } else {
+        console.error('An unknown error occurred');
+      }
     }
   };
 
@@ -77,7 +80,7 @@ const AvantGardePortfolio = () => {
       ? photos
       : photos.filter((photo) => photo.category === activeCategory);
 
-  const handlePhotoClick = (photo) => {
+  const handlePhotoClick = (photo: {id: string}) => {
     router.push(`/photo/${photo.id}`);
   };
 
@@ -179,6 +182,13 @@ const AvantGardePortfolio = () => {
           ALBUMS
         </button>
       </div>
+
+      {/* Error message */}
+      {error && (
+        <div className="fixed inset-0 bg-red-100 text-red-800 p-4 z-50">
+          {error}
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="mt-8 pb-8 text-center text-gray-500">

@@ -153,6 +153,18 @@ const AlbumsPage = () => {
         </motion.div>
       </main>
 
+      {/* Error message */}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="fixed top-0 left-0 right-0 bg-red-600 text-white text-center p-4"
+        >
+          {error}
+        </motion.div>
+      )}
+
       {/* Footer */}
       <motion.footer
         initial={{ y: 50 }}
