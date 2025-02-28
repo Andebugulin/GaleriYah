@@ -27,10 +27,16 @@ const PhotoForm = ({ initialData = {} }) => {
         
       if (error) throw error;
       setMessage("Photo saved successfully!");
-      if (!initialData.id) {
-        // Clear form if it was a new entry
-        setForm({});
+      if (!form.id) {  // Check form.id instead of initialData.id
+        setForm({
+          title: '',
+          url: '',
+          category: '',
+          description: '',
+          date_taken: '',
+        });
       }
+      
     } catch (error) {
       setMessage(`Error: ${error.message}`);
     } finally {
@@ -74,6 +80,15 @@ const PhotoForm = ({ initialData = {} }) => {
           className="w-full p-2 border rounded"
           value={form.url || ''} 
           onChange={(e) => setForm({...form, url: e.target.value})}
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">Date Taken</label>
+        <input 
+          className="w-full p-2 border rounded"
+          value={form.date_taken || ''} 
+          onChange={(e) => setForm({...form, date_taken: e.target.value})}
           required
         />
       </div>
