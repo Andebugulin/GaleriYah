@@ -22,6 +22,8 @@ export default function AdminPhotosPage() {
     description: '',
     cover_photo_url: ''
   });
+  const [albumPhotos, setAlbumPhotos] = useState([]);
+  const [isLoadingAlbumPhotos, setIsLoadingAlbumPhotos] = useState(false);
 
   useEffect(() => {
     fetchPhotos();
@@ -65,6 +67,26 @@ export default function AdminPhotosPage() {
     }
   };
 
+  const fetchAlbumPhotos = async (albumId) => {
+    setIsLoadingAlbumPhotos(true);
+    try {
+      const { data, error } = await supabase
+        .from('album_photos')
+        .select('photo_id')
+        .eq('album_id', albumId);
+      
+      if (error) throw error;
+      
+      // Extract the photo IDs from the junction table
+      const photoIds = data.map(item => item.photo_id);
+      setAlbumPhotos(photoIds);
+    } catch (error) {
+      console.error('Error fetching album photos:', error);
+    } finally {
+      setIsLoadingAlbumPhotos(false);
+    }
+  };
+
   const handleEdit = (photo) => {
     setSelectedPhoto(photo);
     setShowForm(true);
@@ -74,6 +96,15 @@ export default function AdminPhotosPage() {
     if (!confirm('Are you sure you want to delete this photo?')) return;
     
     try {
+      // First, delete any references in the junction table
+      const { error: junctionError } = await supabase
+        .from('album_photos')
+        .delete()
+        .eq('photo_id', id);
+        
+      if (junctionError) throw junctionError;
+      
+      // Then delete the photo
       const { error } = await supabase
         .from('photos')
         .delete()
@@ -118,33 +149,43 @@ export default function AdminPhotosPage() {
 
   const handleSaveAlbum = async (albumData) => {
     try {
-      let result;
+      let albumId;
       
       if (selectedAlbum) {
         // Update existing album
-        result = await supabase
+        const { data, error } = await supabase
           .from('albums')
           .update(albumData)
-          .eq('id', selectedAlbum.id);
+          .eq('id', selectedAlbum.id)
+          .select();
+          
+        if (error) throw error;
+        albumId = selectedAlbum.id;
+        if (data.length === 0) throw new Error('Album not found.');
       } else {
         // Create new album
-        result = await supabase
+        const { data, error } = await supabase
           .from('albums')
-          .insert([albumData]);
+          .insert([albumData])
+          .select();
+          
+        if (error) throw error;
+        albumId = data[0].id;
+        if (!albumId) throw new Error('Failed to create album.');
       }
-      
-      if (result.error) throw result.error;
       
       setShowAlbumForm(false);
       setSelectedAlbum(null);
+      setAlbumPhotos([]);
       fetchAlbums();
     } catch (error) {
       alert(`Error saving album: ${error.message}`);
     }
   };
 
-  const handleEditAlbum = (album) => {
+  const handleEditAlbum = async (album) => {
     setSelectedAlbum(album);
+    await fetchAlbumPhotos(album.id);
     setShowAlbumForm(true);
   };
 
@@ -152,6 +193,15 @@ export default function AdminPhotosPage() {
     if (!confirm('Are you sure you want to delete this album?')) return;
     
     try {
+      // First, delete entries in the junction table
+      const { error: junctionError } = await supabase
+        .from('album_photos')
+        .delete()
+        .eq('album_id', id);
+        
+      if (junctionError) throw junctionError;
+      
+      // Then delete the album
       const { error } = await supabase
         .from('albums')
         .delete()
@@ -181,9 +231,29 @@ export default function AdminPhotosPage() {
         }
       } else {
         alert('Photo added to album successfully!');
+        if (selectedAlbum && selectedAlbum.id === albumId) {
+          fetchAlbumPhotos(albumId);
+        }
       }
     } catch (error) {
       alert(`Error adding photo to album: ${error.message}`);
+    }
+  };
+
+  const handleRemoveFromAlbum = async (photoId, albumId) => {
+    try {
+      const { error } = await supabase
+        .from('album_photos')
+        .delete()
+        .eq('photo_id', photoId)
+        .eq('album_id', albumId);
+        
+      if (error) throw error;
+      
+      alert('Photo removed from album successfully!');
+      fetchAlbumPhotos(albumId);
+    } catch (error) {
+      alert(`Error removing photo from album: ${error.message}`);
     }
   };
 
@@ -196,17 +266,16 @@ export default function AdminPhotosPage() {
         description: '',
         cover_photo_url: ''
       });
+      setAlbumPhotos([]);
     }
   }, [selectedAlbum]);
 
   // Render form for album
   const renderAlbumForm = () => {
-    
-    
-      const handleSubmit = (e) => {
-        e.preventDefault();
-        handleSaveAlbum(albumForm);
-      };
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      handleSaveAlbum(albumForm);
+    };
 
     return (
       <div className="bg-white p-6 rounded shadow">
@@ -241,6 +310,64 @@ export default function AdminPhotosPage() {
               onChange={(e) => setAlbumForm({...albumForm, cover_photo_url: e.target.value})}
             />
           </div>
+          
+          {selectedAlbum && (
+            <div>
+              <label className="block text-sm font-medium mb-1">Photos in this album</label>
+              {isLoadingAlbumPhotos ? (
+                <p>Loading album photos...</p>
+              ) : albumPhotos.length > 0 ? (
+                <div className="grid grid-cols-4 gap-2 mt-2">
+                  {photos
+                    .filter(photo => albumPhotos.includes(photo.id))
+                    .map(photo => (
+                      <div key={photo.id} className="relative">
+                        <img 
+                          src={photo.url} 
+                          alt={photo.title || 'Photo'} 
+                          className="h-20 w-20 object-cover rounded"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFromAlbum(photo.id, selectedAlbum.id)}
+                          className="absolute top-0 right-0 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                          title="Remove from album"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))
+                  }
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">No photos in this album yet.</p>
+              )}
+              
+              <div className="mt-4">
+                <label className="block text-sm font-medium mb-1">Add photos to album</label>
+                <select 
+                  className="w-full p-2 border rounded"
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      handleAddToAlbum(e.target.value, selectedAlbum.id);
+                      e.target.value = '';
+                    }
+                  }}
+                  defaultValue=""
+                >
+                  <option value="" disabled>Select a photo to add</option>
+                  {photos
+                    .filter(photo => !albumPhotos.includes(photo.id))
+                    .map(photo => (
+                      <option key={photo.id} value={photo.id}>
+                        {photo.title || `Untitled (ID: ${photo.id})`}
+                      </option>
+                    ))
+                  }
+                </select>
+              </div>
+            </div>
+          )}
           
           <div className="flex space-x-2">
             <button 

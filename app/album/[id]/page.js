@@ -53,7 +53,6 @@ export default function AlbumDetail({ params }) {
       .from("album_photos")
       .select("photos(*)")
       .eq("album_id", albumId)
-      .subscribe(); // Add realtime subscription
 
     if (error) {
       console.error("Error fetching album photos:", error);
