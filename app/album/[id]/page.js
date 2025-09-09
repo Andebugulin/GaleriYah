@@ -195,7 +195,7 @@ export default function AlbumDetail({ params }) {
                       className="font-mono text-sm text-white/80 transform translate-y-8 
                       group-hover:translate-y-0 ease-out "
                     >
-                      {formatDate(photo.created_at)}
+                      {formatDate(photo.date_taken)}
                     </p>
 
                     {/* Modern accent lines */}
