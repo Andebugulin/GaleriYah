@@ -57,7 +57,6 @@ export default function AlbumDetail({ params }) {
     if (error) {
       console.error("Error fetching album photos:", error);
     } else {
-      console.log(data);
       // Sorting photos by a unique property like ID or created_at date
       const sortedPhotos = data
         .map((item) => item.photos)
