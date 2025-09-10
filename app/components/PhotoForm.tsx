@@ -13,7 +13,7 @@ type InitialData = {
   // Add other fields as needed
 };
 
-const PhotoForm = ({ initialData = {} as InitialData }) => {
+const PhotoForm = ({ initialData = {} as InitialData, uniqueCategories = {} }) => {
   const [form, setForm] = useState(initialData || {
     title: '',
     url: '',
@@ -56,6 +56,7 @@ const PhotoForm = ({ initialData = {} as InitialData }) => {
     }
   };
   
+  
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
@@ -80,10 +81,22 @@ const PhotoForm = ({ initialData = {} as InitialData }) => {
       <div>
         <label className="block text-sm font-medium mb-1">Category</label>
         <textarea 
-          className="w-full p-2 border rounded"
+          className="w-full p-2 border rounded mb-2"
           value={form.category || ''} 
           onChange={(e) => setForm({...form, category: e.target.value})}
         />
+        <div className="flex flex-wrap gap-2">
+          {uniqueCategories.map((category: string) => (
+        <button
+          key={category}
+          type="button"
+          className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+          onClick={() => setForm({ ...form, category })}
+        >
+          {category}
+        </button>
+          ))}
+        </div>
       </div>
       
       <div>
@@ -95,6 +108,15 @@ const PhotoForm = ({ initialData = {} as InitialData }) => {
           required
         />
       </div>
+      {form.url && (
+        <div className="mt-4">
+          <img 
+        src={form.url} 
+        alt="Preview" 
+        className="max-w-full h-auto border rounded"
+          />
+        </div>
+      )}
       <div>
         <label className="block text-sm font-medium mb-1">Date Taken</label>
         <input 

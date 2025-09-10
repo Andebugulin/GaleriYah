@@ -22,8 +22,10 @@ export default function AdminPhotosPage() {
     description: '',
     cover_photo_url: ''
   });
+  const [uniqueCategories, setUniqueCategories] = useState([]);
   const [albumPhotos, setAlbumPhotos] = useState([]);
   const [isLoadingAlbumPhotos, setIsLoadingAlbumPhotos] = useState(false);
+  const [showPhotoSelector, setShowPhotoSelector] = useState(false);
 
   useEffect(() => {
     fetchPhotos();
@@ -46,6 +48,7 @@ export default function AdminPhotosPage() {
       
       if (error) throw error;
       setPhotos(data || []);
+      setUniqueCategories([...new Set((data || []).map(photo => photo.category).filter(Boolean))]);
     } catch (error) {
       console.error('Error fetching photos:', error);
     } finally {
@@ -77,7 +80,6 @@ export default function AdminPhotosPage() {
       
       if (error) throw error;
       
-      // Extract the photo IDs from the junction table
       const photoIds = data.map(item => item.photo_id);
       setAlbumPhotos(photoIds);
     } catch (error) {
@@ -96,7 +98,6 @@ export default function AdminPhotosPage() {
     if (!confirm('Are you sure you want to delete this photo?')) return;
     
     try {
-      // First, delete any references in the junction table
       const { error: junctionError } = await supabase
         .from('album_photos')
         .delete()
@@ -104,7 +105,6 @@ export default function AdminPhotosPage() {
         
       if (junctionError) throw junctionError;
       
-      // Then delete the photo
       const { error } = await supabase
         .from('photos')
         .delete()
@@ -177,6 +177,7 @@ export default function AdminPhotosPage() {
       setShowAlbumForm(false);
       setSelectedAlbum(null);
       setAlbumPhotos([]);
+      setShowPhotoSelector(false);
       fetchAlbums();
     } catch (error) {
       alert(`Error saving album: ${error.message}`);
@@ -193,7 +194,6 @@ export default function AdminPhotosPage() {
     if (!confirm('Are you sure you want to delete this album?')) return;
     
     try {
-      // First, delete entries in the junction table
       const { error: junctionError } = await supabase
         .from('album_photos')
         .delete()
@@ -201,7 +201,6 @@ export default function AdminPhotosPage() {
         
       if (junctionError) throw junctionError;
       
-      // Then delete the album
       const { error } = await supabase
         .from('albums')
         .delete()
@@ -270,12 +269,65 @@ export default function AdminPhotosPage() {
     }
   }, [selectedAlbum]);
 
-  // Render form for album
+  // Photo selector component with thumbnails
+  const PhotoSelector = ({ onSelectPhoto, availablePhotos }) => {
+    return (
+      <div className="mt-4">
+        <div className="flex justify-between items-center mb-2">
+          <label className="block text-sm font-medium">Add photos to album</label>
+          <button
+            type="button"
+            onClick={() => setShowPhotoSelector(!showPhotoSelector)}
+            className="text-blue-600 hover:text-blue-800 text-sm"
+          >
+            {showPhotoSelector ? 'Hide photos' : 'Show photos'}
+          </button>
+        </div>
+        
+        {showPhotoSelector && (
+          <div className="border rounded p-4 max-h-64 overflow-y-auto">
+            <div className="grid grid-cols-4 gap-2">
+              {availablePhotos.map(photo => (
+                <div 
+                  key={photo.id} 
+                  className="relative cursor-pointer hover:opacity-75"
+                  onClick={() => {
+                    onSelectPhoto(photo.id);
+                    setShowPhotoSelector(false);
+                  }}
+                >
+                  <img 
+                    src={photo.url} 
+                    alt={photo.title || 'Photo'} 
+                    className="h-20 w-20 object-cover rounded border hover:border-blue-500"
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b truncate">
+                    {photo.title || `ID: ${photo.id}`}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderAlbumForm = () => {
     const handleSubmit = (e) => {
       e.preventDefault();
-      handleSaveAlbum(albumForm);
+      const payload = { ...albumForm };
+      // Ensure created_at exists (if user didn't set, keep existing or let DB default)
+      if (!payload.created_at) {
+        payload.created_at = new Date().toISOString();
+      }
+      handleSaveAlbum(payload);
     };
+
+    const availablePhotos = photos.filter(photo => !albumPhotos.includes(photo.id));
+    const createdDateValue = albumForm.created_at
+      ? new Date(albumForm.created_at).toISOString().slice(0, 10)
+      : '';
 
     return (
       <div className="bg-white p-6 rounded shadow">
@@ -285,32 +337,53 @@ export default function AdminPhotosPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Title</label>
-            <input 
+            <input
               className="w-full p-2 border rounded"
-              value={albumForm.title || ''} 
-              onChange={(e) => setAlbumForm({...albumForm, title: e.target.value})}
+              value={albumForm.title || ''}
+              onChange={(e) => setAlbumForm({ ...albumForm, title: e.target.value })}
               required
             />
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium mb-1">Description</label>
-            <textarea 
+            <label className="block text-sm font-medium mb-1">Album Date</label>
+            <input
+              type="date"
               className="w-full p-2 border rounded"
-              value={albumForm.description || ''} 
-              onChange={(e) => setAlbumForm({...albumForm, description: e.target.value})}
+              value={createdDateValue}
+              onChange={(e) =>
+                setAlbumForm({
+                  ...albumForm,
+                  created_at: e.target.value
+                    ? new Date(e.target.value + 'T00:00:00Z').toISOString()
+                    : null
+                })
+              }
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              This will set (or update) the album created_at field.
+            </p>
+          </div>
+
+            <div>
+            <label className="block text-sm font-medium mb-1">Description</label>
+            <textarea
+              className="w-full p-2 border rounded"
+              value={albumForm.description || ''}
+              onChange={(e) => setAlbumForm({ ...albumForm, description: e.target.value })}
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium mb-1">Cover Photo URL</label>
-            <input 
+            <input
               className="w-full p-2 border rounded"
-              value={albumForm.cover_photo_url || ''} 
-              onChange={(e) => setAlbumForm({...albumForm, cover_photo_url: e.target.value})}
+              value={albumForm.cover_photo_url || ''}
+              onChange={(e) => setAlbumForm({ ...albumForm, cover_photo_url: e.target.value })}
             />
           </div>
-          
+
           {selectedAlbum && (
             <div>
               <label className="block text-sm font-medium mb-1">Photos in this album</label>
@@ -322,9 +395,9 @@ export default function AdminPhotosPage() {
                     .filter(photo => albumPhotos.includes(photo.id))
                     .map(photo => (
                       <div key={photo.id} className="relative">
-                        <img 
-                          src={photo.url} 
-                          alt={photo.title || 'Photo'} 
+                        <img
+                          src={photo.url}
+                          alt={photo.title || 'Photo'}
                           className="h-20 w-20 object-cover rounded"
                         />
                         <button
@@ -342,45 +415,27 @@ export default function AdminPhotosPage() {
               ) : (
                 <p className="text-sm text-gray-500">No photos in this album yet.</p>
               )}
-              
-              <div className="mt-4">
-                <label className="block text-sm font-medium mb-1">Add photos to album</label>
-                <select 
-                  className="w-full p-2 border rounded"
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      handleAddToAlbum(e.target.value, selectedAlbum.id);
-                      e.target.value = '';
-                    }
-                  }}
-                  defaultValue=""
-                >
-                  <option value="" disabled>Select a photo to add</option>
-                  {photos
-                    .filter(photo => !albumPhotos.includes(photo.id))
-                    .map(photo => (
-                      <option key={photo.id} value={photo.id}>
-                        {photo.title || `Untitled (ID: ${photo.id})`}
-                      </option>
-                    ))
-                  }
-                </select>
-              </div>
+
+              <PhotoSelector
+                onSelectPhoto={(photoId) => handleAddToAlbum(photoId, selectedAlbum.id)}
+                availablePhotos={availablePhotos}
+              />
             </div>
           )}
-          
+
           <div className="flex space-x-2">
-            <button 
+            <button
               type="submit"
               className="px-4 py-2 bg-blue-600 text-white rounded"
             >
               Save Album
             </button>
-            <button 
+            <button
               type="button"
               onClick={() => {
                 setShowAlbumForm(false);
                 setSelectedAlbum(null);
+                setShowPhotoSelector(false);
               }}
               className="px-4 py-2 bg-gray-300 text-gray-800 rounded"
             >
@@ -392,7 +447,6 @@ export default function AdminPhotosPage() {
     );
   };
 
-  // Render albums view
   const renderAlbumsView = () => {
     return (
       <div className="space-y-6">
@@ -474,7 +528,6 @@ export default function AdminPhotosPage() {
     );
   };
 
-  // Render photos view
   const renderPhotosView = () => {
     return (
       <div className="space-y-6">
@@ -537,6 +590,7 @@ export default function AdminPhotosPage() {
             </h2>
             <PhotoForm 
               initialData={selectedPhoto} 
+              uniqueCategories={uniqueCategories}
               onSuccess={() => {
                 setShowForm(false);
                 setSelectedPhoto(null);
