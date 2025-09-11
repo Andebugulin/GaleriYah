@@ -84,6 +84,15 @@ const AvantGardePortfolio = () => {
     router.push(`/photo/${photo.id}`);
   };
 
+  const [imageSizes, setImageSizes] = useState<{[key: string]: {width: number, height: number}}>({});
+
+  const handleImageLoad = (photoId: string, naturalWidth: number, naturalHeight: number) => {
+    setImageSizes(prev => ({
+      ...prev,
+      [photoId]: { width: naturalWidth, height: naturalHeight }
+    }));
+  };
+
   const handleAlbumsClick = () => {
     router.push("/albums");
   };
@@ -154,9 +163,10 @@ const AvantGardePortfolio = () => {
         <img
           src={photo.url}
           alt={photo.title}
+          onLoad={(e) => handleImageLoad(photo.id, e.currentTarget.naturalWidth, e.currentTarget.naturalHeight)}
           className={`w-full h-full group-hover:grayscale ${
-            photo.width > 500 || photo.height > 500 
-              ? 'object-cover' 
+            (imageSizes[photo.id]?.width || 0) > 500 || (imageSizes[photo.id]?.height || 0) > 500
+              ? 'object-cover'
               : 'object-none'
           }`}
         />
