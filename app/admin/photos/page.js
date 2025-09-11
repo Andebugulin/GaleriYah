@@ -22,6 +22,7 @@ export default function AdminPhotosPage() {
     description: '',
     cover_photo_url: ''
   });
+  const [photoAlbums, setPhotoAlbums] = useState({});
   const [uniqueCategories, setUniqueCategories] = useState([]);
   const [albumPhotos, setAlbumPhotos] = useState([]);
   const [isLoadingAlbumPhotos, setIsLoadingAlbumPhotos] = useState(false);
@@ -31,6 +32,7 @@ export default function AdminPhotosPage() {
     fetchPhotos();
     fetchAlbums();
     fetchLastSync();
+    fetchPhotoAlbums();
   }, []);
 
   const fetchLastSync = async () => {
@@ -53,6 +55,28 @@ export default function AdminPhotosPage() {
       console.error('Error fetching photos:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchPhotoAlbums = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('album_photos')
+        .select('photo_id, album_id, albums(title)')
+        .not('albums', 'is', null);
+        
+      if (error) throw error;
+      
+      const photoAlbumMap = {};
+      data.forEach(item => {
+        photoAlbumMap[item.photo_id] = {
+          albumId: item.album_id,
+          albumTitle: item.albums.title
+        };
+      });
+      setPhotoAlbums(photoAlbumMap);
+    } catch (error) {
+      console.error('Error fetching photo albums:', error);
     }
   };
 
@@ -190,6 +214,46 @@ export default function AdminPhotosPage() {
     setShowAlbumForm(true);
   };
 
+  const handleUpdateCategory = async (photoId, newCategory) => {
+    try {
+      const { error } = await supabase
+        .from('photos')
+        .update({ category: newCategory || null })
+        .eq('id', photoId);
+        
+      if (error) throw error;
+      
+      // Update local state
+      setPhotos(photos.map(photo => 
+        photo.id === photoId 
+          ? { ...photo, category: newCategory || null }
+          : photo
+      ));
+    } catch (error) {
+      alert(`Error updating category: ${error.message}`);
+    }
+  };
+
+  const handleUpdatePhotoTitle = async (photoId, newTitle) => {
+    try {
+      const { error } = await supabase
+        .from('photos')
+        .update({ title: newTitle || null })
+        .eq('id', photoId);
+        
+      if (error) throw error;
+      
+      // Update local state
+      setPhotos(photos.map(photo => 
+        photo.id === photoId 
+          ? { ...photo, title: newTitle || null }
+          : photo
+      ));
+    } catch (error) {
+      console.error('Error updating photo title:', error);
+    }
+  };
+
   const handleDeleteAlbum = async (id) => {
     if (!confirm('Are you sure you want to delete this album?')) return;
     
@@ -215,27 +279,30 @@ export default function AdminPhotosPage() {
 
   const handleAddToAlbum = async (photoId, albumId) => {
     try {
-      const { error } = await supabase
+      const { error: removeError } = await supabase
         .from('album_photos')
-        .insert([{
-          photo_id: photoId,
-          album_id: albumId
-        }]);
+        .delete()
+        .eq('photo_id', photoId);
         
-      if (error) {
-        if (error.code === '23505') { // Unique violation
-          alert('This photo is already in the selected album.');
-        } else {
-          throw error;
-        }
-      } else {
-        alert('Photo added to album successfully!');
-        if (selectedAlbum && selectedAlbum.id === albumId) {
-          fetchAlbumPhotos(albumId);
-        }
+      if (removeError) throw removeError;
+      
+      if (albumId) {
+        const { error: insertError } = await supabase
+          .from('album_photos')
+          .insert([{
+            photo_id: photoId,
+            album_id: albumId
+          }]);
+          
+        if (insertError) throw insertError;
+      }
+      
+      fetchPhotoAlbums(); // Refresh the photo-album relationships
+      if (selectedAlbum) {
+        fetchAlbumPhotos(selectedAlbum.id);
       }
     } catch (error) {
-      alert(`Error adding photo to album: ${error.message}`);
+      alert(`Error updating photo album: ${error.message}`);
     }
   };
 
@@ -273,24 +340,25 @@ export default function AdminPhotosPage() {
   const PhotoSelector = ({ onSelectPhoto, availablePhotos }) => {
     return (
       <div className="mt-4">
-        <div className="flex justify-between items-center mb-2">
-          <label className="block text-sm font-medium">Add photos to album</label>
-          <button
-            type="button"
-            onClick={() => setShowPhotoSelector(!showPhotoSelector)}
-            className="text-blue-600 hover:text-blue-800 text-sm"
-          >
-            {showPhotoSelector ? 'Hide photos' : 'Show photos'}
-          </button>
-        </div>
+        <div className="flex items-center mb-2 space-x-4">
+        <button
+          type="button"
+          onClick={() => setShowPhotoSelector(!showPhotoSelector)}
+          className="text-blue-600 hover:text-blue-800 text-sm"
+        >
+          {showPhotoSelector ? 'Hide available photos' : 'Show available photos'}
+        </button>
+        <label className="block text-sm font-medium">Add unassigned photos to album</label>
+      </div>
         
-        {showPhotoSelector && (
-          <div className="border rounded p-4 max-h-64 overflow-y-auto">
-            <div className="grid grid-cols-4 gap-2">
+      {showPhotoSelector && (
+        <div className="border rounded p-4">
+          {availablePhotos.length > 0 ? (
+            <div className="grid grid-cols-6 gap-2">
               {availablePhotos.map(photo => (
+              <div key={photo.id} className="relative border rounded">
                 <div 
-                  key={photo.id} 
-                  className="relative cursor-pointer hover:opacity-75"
+                  className="cursor-pointer hover:opacity-75"
                   onClick={() => {
                     onSelectPhoto(photo.id);
                     setShowPhotoSelector(false);
@@ -299,16 +367,25 @@ export default function AdminPhotosPage() {
                   <img 
                     src={photo.url} 
                     alt={photo.title || 'Photo'} 
-                    className="h-20 w-20 object-cover rounded border hover:border-blue-500"
+                    className="h-20 w-20 object-cover rounded-t border-b hover:border-blue-500"
                   />
-                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b truncate">
-                    {photo.title || `ID: ${photo.id}`}
-                  </div>
                 </div>
-              ))}
+                <input
+                  type="text"
+                  value={photo.title || ''}
+                  onChange={(e) => handleUpdatePhotoTitle(photo.id, e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  placeholder="Enter title..."
+                  className="w-full text-xs p-1 border-0 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+            ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <p className="text-sm text-gray-500">No unassigned photos available.</p>
+          )}
+        </div>
+      )}
       </div>
     );
   };
@@ -324,7 +401,9 @@ export default function AdminPhotosPage() {
       handleSaveAlbum(payload);
     };
 
-    const availablePhotos = photos.filter(photo => !albumPhotos.includes(photo.id));
+    const availablePhotos = photos.filter(photo => 
+      !albumPhotos.includes(photo.id) && !photoAlbums[photo.id]
+    );
     const createdDateValue = albumForm.created_at
       ? new Date(albumForm.created_at).toISOString().slice(0, 10)
       : '';
@@ -631,7 +710,13 @@ export default function AdminPhotosPage() {
                 {photos.map((photo) => (
                   <tr key={photo.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {photo.title || 'Untitled'}
+                      <input
+                        type="text"
+                        value={photo.title || ''}
+                        onChange={(e) => handleUpdatePhotoTitle(photo.id, e.target.value)}
+                        placeholder="Untitled"
+                        className="w-full p-1 border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border rounded"
+                      />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {photo.url && (
@@ -643,7 +728,18 @@ export default function AdminPhotosPage() {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {photo.category || 'Uncategorized'}
+                      <select 
+                        className="p-1 border rounded"
+                        value={photo.category || ''}
+                        onChange={(e) => handleUpdateCategory(photo.id, e.target.value)}
+                      >
+                        <option value="">Uncategorized</option>
+                        {uniqueCategories.map(category => (
+                          <option key={category} value={category}>
+                            {category}
+                          </option>
+                        ))}
+                      </select>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {photo.date_taken ? new Date(photo.date_taken).toLocaleDateString() : 'Unknown'}
@@ -652,21 +748,21 @@ export default function AdminPhotosPage() {
                       {albums.length > 0 && (
                         <select 
                           className="p-1 border rounded"
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              handleAddToAlbum(photo.id, e.target.value);
-                              e.target.value = '';
-                            }
-                          }}
-                          defaultValue=""
+                          value={photoAlbums[photo.id]?.albumId || ''}
+                          onChange={(e) => handleAddToAlbum(photo.id, e.target.value || null)}
                         >
-                          <option value="" disabled>Select album</option>
+                          <option value="">No album</option>
                           {albums.map(album => (
                             <option key={album.id} value={album.id}>
                               {album.title}
                             </option>
                           ))}
                         </select>
+                      )}
+                      {photoAlbums[photo.id] && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          Current: {photoAlbums[photo.id].albumTitle}
+                        </div>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

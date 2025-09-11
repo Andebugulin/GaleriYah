@@ -144,34 +144,38 @@ const AvantGardePortfolio = () => {
 
       {/* Main content */}
       <main className="container mx-auto pt-24 px-1">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1">
-          {filteredPhotos.map((photo) => (
-            <div
-              key={photo.id}
-              className="relative aspect-square overflow-hidden group cursor-pointer"
-              onClick={() => handlePhotoClick(photo)}
-            >
-              <img
-                src={photo.url}
-                alt={photo.title}
-                className="w-full h-full object-cover group-hover:grayscale"
-              />
-              <div className="absolute inset-0 bg-black bg-opacity-0">
-                <div className="h-full flex flex-col justify-center items-center p-4 text-white text-center">
-                  <h3 className="text-2xl font-bold w-full opacity-0 group-hover:opacity-100">
-                    <span className="inline-block bg-black">{photo.title}</span>
-                  </h3>
-                  <p className="text-lg font-mono opacity-0 group-hover:opacity-100">
-                    <span className="inline-block bg-black">
-                      {photo.category.toUpperCase()}
-                    </span>
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1">
+    {filteredPhotos.map((photo) => (
+      <div
+        key={photo.id}
+        className="relative aspect-square overflow-hidden group cursor-pointer bg-white"
+        onClick={() => handlePhotoClick(photo)}
+      >
+        <img
+          src={photo.url}
+          alt={photo.title}
+          className={`w-full h-full group-hover:grayscale ${
+            photo.width > 500 || photo.height > 500 
+              ? 'object-cover' 
+              : 'object-none'
+          }`}
+        />
+        <div className="absolute inset-0 bg-black bg-opacity-0">
+          <div className="h-full flex flex-col justify-center items-center p-4 text-white text-center">
+            <h3 className="text-2xl font-bold w-full opacity-0 group-hover:opacity-100">
+              <span className="inline-block bg-black">{photo.title}</span>
+            </h3>
+            <p className="text-lg font-mono opacity-0 group-hover:opacity-100">
+              <span className="inline-block bg-black">
+                {photo.category.toUpperCase()}
+              </span>
+            </p>
+          </div>
         </div>
-      </main>
+      </div>
+    ))}
+  </div>
+</main>
 
       {/* Flat Supreme-inspired Albums Button */}
       <div className="fixed bottom-8 right-8 z-50">

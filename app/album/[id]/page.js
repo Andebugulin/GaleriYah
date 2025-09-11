@@ -159,10 +159,13 @@ export default function AlbumDetail({ params }) {
                 <img
                   src={photo.url}
                   alt={photo.title}
-                  className="w-full h-full object-cover transition-all  ease-out
-                    group-hover:grayscale group-hover:contrast-125 group-hover:brightness-90"
+                  className={`w-full h-full transition-all ease-out
+                    group-hover:grayscale group-hover:contrast-125 group-hover:brightness-90 ${
+                    photo.width > 800 || photo.height > 800 
+                      ? 'object-cover' 
+                      : 'object-contain'
+                  }`}
                 />
-
                 {/* Modern overlay effects */}
                 <div
                   className="absolute inset-0 transition-all  ease-out
