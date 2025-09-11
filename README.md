@@ -113,9 +113,25 @@ create table album_photos (
 - `date_taken`: Date
 - `created_at`: Timestamp with timezone, automatically set
 
+
+### Admin page
+- Admin page is located at `https://galeriyah.netlify.app/admin/photos`, you can get there only by typing the URL directly.
+- In the supabase dashboard go to "Authentication" -> add your users that will be able to access the admin page, use strong password.
+- In the `https://galeriyah.netlify.app/admin/photos` you will see login screen, in order to login you need to use your Supabase credentials (email and password).
+- After login you can add photos and easily manage albums.
+
+
 ## Flickr Integration
 
-The project includes a Python script (`parse_pictures_from_flickr.py`) that automates the process of importing photos from Flickr to your Supabase database.
+Admin page includes a syncranization button that will import photos from Flickr to your Supabase database.
+in order to use it you need to set up your Flickr account(its free and you can upload up to 1000 photos) and get your photos URL.
+in my case it was: `https://www.flickr.com/photos/201748906@N08/with/54260070380/` its basically the URL of the Photostream that contains all your photos in Flickr.
+
+After that press button `Sync Now` and wait until the process is done, it can take a while depending on how many photos you have in Flickr, for me I have around 52 photos and it took around 3 minutes to import them all, because it is a scrapper.
+
+
+
+The project includes a Python script (`parse_pictures_from_flickr.py`) that automates the process of importing photos from Flickr to your Supabase database too.
 
 ### Prerequisites
 ```bash
