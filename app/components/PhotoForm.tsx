@@ -13,7 +13,7 @@ type InitialData = {
   // Add other fields as needed
 };
 
-const PhotoForm = ({ initialData = {} as InitialData, uniqueCategories = {} }) => {
+const PhotoForm = ({ initialData = {} as InitialData, uniqueCategories = [] as string[] }) => {
   const [form, setForm] = useState(initialData || {
     title: '',
     url: '',
